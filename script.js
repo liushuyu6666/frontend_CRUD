@@ -1,3 +1,6 @@
+var requestBody = [];
+var selectedResource;
+
 function getInfo(url){
     return fetch(url, {method: "GET"})
         .then(response => response.json())
@@ -13,6 +16,8 @@ function PostInfo(url, options){
 async function renderResourcesTable(url){
 
     event.preventDefault();
+
+    selectedResource = event.target.id;
 
     let list = await getInfo(url);
 
@@ -31,6 +36,9 @@ async function renderResourcesTable(url){
             existed_table_body = document.getElementById("table-body").firstChild;
         }
 
+        // pass selected resource to the frontend
+        document.getElementById("selected_resources").textContent = selectedResource;
+
         // add table header
         let table_header = document.getElementById("table-header");
         header_row = document.createElement("tr");
@@ -46,22 +54,33 @@ async function renderResourcesTable(url){
         let table_body = document.getElementById("table-body");
         list.forEach((item) => {
             body_row = document.createElement("tr");
-            Object.values(item).forEach((val) => {
-                // console.log(val);
-                body_column = document.createElement("td");
-                body_input = document.createElement("input");
+            for(let key in item){
+                let val = item[key];
+                let body_column = document.createElement("td");
+                let body_input = document.createElement("input");
                 body_input.setAttribute("value", val);
                 body_input.setAttribute("type", "text");
-                body_input.addEventListener('change', (event) => {
-                    event.preventDefault();
-                    event.target.setAttribute("style", "background:red");
-                    parent = event.target.parentElement.parentElement;
-                    id = parent.firstChild.firstChild.value;
-
-                })
+                body_input.setAttribute("name", key);
                 body_column.appendChild(body_input);
                 body_row.appendChild(body_column);
-            })
+                // add event trigger
+                body_input.addEventListener('change', (event) => {
+
+                    event.preventDefault();
+
+
+                    event.target.setAttribute("style", "background:red");
+                    let tr_parent = event.target.parentElement
+                        .parentElement;
+                    let id = tr_parent.firstChild.firstChild.value;
+                    let updateKey = event.target.name;
+                    let updateValue = event.target.value;
+                    /** tips: set variable as key in object**/
+                    requestBody.push({id: id, [updateKey]: updateValue});
+                })
+                // end trigger
+            }
+            body_row.firstChild.firstChild.readOnly = true;
             table_body.appendChild(body_row);
         })
     }
@@ -69,10 +88,6 @@ async function renderResourcesTable(url){
 
 function renderCpuTable(){
     renderResourcesTable("http://localhost:8080/v1/cpus");
-
-    // add changeValueListener
-
-
 }
 
 function renderGraphicTable(){
@@ -158,21 +173,22 @@ async function createMemory(event){
     }
 }
 
-function updateResourcesValue(event){
+async function updateResourcesValue(event){
 
     event.preventDefault();
 
-    // create a new dictionary
-    let dict = {};
+    let url = "http://localhost:8080/v1/" + document.getElementById("selected_resources").textContent;
 
-    //
-    theader = document.getElementById("table-header");
-    theader_row = theader.firstChild;
-    theader_columns = theader_row.querySelectorAll("th");
-    Array.from(theader_columns).forEach((item) => {
-        // console.log(item.textContent);
-        dict[item.textContent] = "";
-    })
-    console.log(dict);
-
+    for(let i = 0; i < requestBody.length; i++){
+        option = {
+            method: "POST",
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(requestBody[i])
+        }
+        let newArray = await PostInfo(url + "/" + requestBody[i].id, option);
+        console.log(newArray);
+    }
+    requestBody = [];
 }
