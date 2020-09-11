@@ -27,7 +27,7 @@
 
     </div>
     <div class="message">
-        <form>
+        <form id="list-and-update">
             <table>
                 <thead id="table-header">
                 <!--add tr and th here-->
@@ -39,7 +39,15 @@
             <button type="button" class="btn btn-success"
                     onclick="updateResourcesValue(event)">update</button>
         </form>
-
+        <br>
+        <form id="create">
+            <table>
+                <tbody id="create-body">
+                    <!--  add row here -->
+                </tbody>
+            </table>
+            <!--    add button here 1) add row 2) submit to the database -->
+        </form>
     </div>
     <script src="script.js"></script>
 </body>

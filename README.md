@@ -14,4 +14,5 @@ DOM of the table
         </tr>
     </tbody>
 </table>
+<add button>
 ```
